@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define USE_WEACT // STM32G031
+// #define USE_WEACT // STM32G031
 //#define USE_WMG0B1 // STM32G0B1
-// #define USE_NUCLEO_431 // STM32G431 (dev board)
+//#define USE_NUCLEO_431 // STM32G431 (dev board)
+//#define USE_MATEK // Matek mR24-30 STM32G431KB
 
 #define SERIAL_DEBUG // only for WMG0B1
 
@@ -36,6 +37,8 @@
 // # define USE_TP
 #elif defined(USE_NUCLEO_431)
 # define HW_VERSION 3
+#elif defined(USE_MATEK)
+# define HW_VERSION 4
 #else
 # warning "wrong board definition"
 #endif
@@ -65,6 +68,9 @@ using devs = Devices<Wmg0b1, DevsConfig>;
 #ifdef USE_NUCLEO_431
 using devs = Devices<Nucleo, DevsConfig>;
 #endif
+#ifdef USE_MATEK
+using devs = Devices<Matek, DevsConfig>;
+#endif
 
 using gfsm = GFSM<devs>;
 
@@ -84,7 +90,7 @@ int main() {
 
     app::main([]{
         NVIC_EnableIRQ(USART1_IRQn);
-#if defined(USE_WEACT) || defined(USE_NUCLEO_431)
+#if defined(USE_WEACT) || defined(USE_NUCLEO_431) || defined(USE_MATEK)
         NVIC_EnableIRQ(USART2_IRQn);
 #elif defined(USE_WMG0B1)
 #ifdef ALTERNATE_PINS
@@ -99,7 +105,7 @@ int main() {
 }
 
 extern "C" {
-#if defined(USE_WEACT) || defined(USE_NUCLEO_431)
+#if defined(USE_WEACT) || defined(USE_NUCLEO_431) || defined(USE_MATEK)
 void USART1_IRQHandler(){
     using relay = devs::relay;
     static_assert(relay::uart::number == 1);
@@ -116,7 +122,7 @@ void USART1_IRQHandler(){
 #else
 # warning "wrong board definition"
 #endif
-#if defined(USE_WEACT) || defined(USE_NUCLEO_431)
+#if defined(USE_WEACT) || defined(USE_NUCLEO_431) || defined(USE_MATEK)
 void USART2_IRQHandler(){
     using crsf = devs::crsf;
     static_assert(crsf::number == 2);

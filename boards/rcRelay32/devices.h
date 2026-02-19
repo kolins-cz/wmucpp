@@ -58,6 +58,7 @@
 struct WeAct;
 struct Wmg0b1;
 struct Nucleo;
+struct Matek;
 
 using namespace std::literals::chrono_literals;
 
@@ -130,6 +131,8 @@ struct Devices<Nucleo, Config, MCU> {
         using storage = Devices::storage;
         using debug = Devices::debug;
         using tp = void;
+        using tp1 = void;
+        using tp2 = void;
         static inline constexpr uint8_t fifoSize = 16;
     };
     struct CrsfCallbackConfig;
@@ -179,6 +182,139 @@ struct Devices<Nucleo, Config, MCU> {
 		SET_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS);
 #endif
 		
+        systemTimer::init();
+
+        gpioa::init();
+        gpiob::init();
+        gpioc::init();
+
+        dma1::init();
+
+        ledBlinker::init();
+        ledBlinker::event(ledBlinker::Event::Off);
+
+        crsf::init();
+        crsf::baud(RC::Protokoll::Crsf::V4::baudrate);
+        relay::init();
+        relay::baud(RC::Protokoll::Crsf::V4::baudrateHandset);
+        relay::activateSource(true);
+        relay::activateLinkStats(false);
+        relay::activateChannels(false);
+
+        adc::init();
+        adc::start();
+    }
+};
+
+// Matek mR24-30 - STM32G431KB
+template<typename Config, typename MCU>
+struct Devices<Matek, Config, MCU> {
+    using clock = Mcu::Stm::Clock<Mcu::Stm::ClockConfig<170_MHz, 2'000_Hz, Mcu::Stm::HSI>>;
+    using systemTimer = Mcu::Stm::SystemTimer<clock, Mcu::UseInterrupts<false>, MCU>;
+
+    using storage = Config::storage;
+
+    using gpioa = Mcu::Stm::GPIO<Mcu::Stm::A, MCU>;
+    using gpiob = Mcu::Stm::GPIO<Mcu::Stm::B, MCU>;
+    using gpioc = Mcu::Stm::GPIO<Mcu::Stm::C, MCU>;
+
+    using dma1 = Mcu::Stm::Dma::Controller<1, MCU>;
+    using auxDmaChannel1 = Mcu::Components::DmaChannel<typename dma1::component_t, 1>;
+    using auxDmaChannel2 = Mcu::Components::DmaChannel<typename dma1::component_t, 2>;
+    using crsfDmaChannel1 = Mcu::Components::DmaChannel<typename dma1::component_t, 3>;
+    using crsfDmaChannel2 = Mcu::Components::DmaChannel<typename dma1::component_t, 4>;
+    using adcDmaChannel  = Mcu::Components::DmaChannel<typename dma1::component_t, 5>;
+
+    struct AdcConfig;
+    using adc = Mcu::Stm::V4::Adc<1, AdcConfig>;
+
+    using relaytx = Mcu::Stm::Pin<gpioa, 9, MCU>;
+    using relayrx = Mcu::Stm::Pin<gpioa, 10, MCU>;
+
+    using gfsm = Config::gfsm;
+
+    struct RelayConfig;
+    using relay = RC::Protokoll::Crsf::V4::PacketRelayRewrite<1, RelayConfig, MCU>;
+
+    using inputtx = Mcu::Stm::Pin<gpiob, 3, MCU>;
+    using inputrx = Mcu::Stm::Pin<gpiob, 4, MCU>;
+
+    struct CrsfConfig;
+    using crsf = RC::Protokoll::Crsf::V4::Master<2, CrsfConfig, MCU>;
+    using crsf_in = crsf::input;
+
+    struct RouterConfig;
+    using router = Router<RouterConfig>;
+    struct RouterConfig {
+        using storage = Devices::storage;
+        using debug = void;
+    };
+
+    using debug = void;
+
+    // LED - green LED on PA1
+    using led = Mcu::Stm::Pin<gpioa, 1, MCU>;
+    using ledBlinker = External::Blinker<led, systemTimer>;
+
+    using btn = void;
+
+    struct RelayConfig {
+        using src = crsf_in;
+        using dest = crsf::messageBuffer;
+        using bcastInterfaces = Meta::List<>;
+        using rxpin = relayrx;
+        using txpin = relaytx;
+        using systemTimer = Devices::systemTimer;
+        using clock = Devices::clock;
+        using dmaChRead  = auxDmaChannel1;
+        using dmaChWrite = auxDmaChannel2;
+        using storage = Devices::storage;
+        using debug = Devices::debug;
+        using tp = void;
+        using tp1 = void;
+        using tp2 = void;
+        static inline constexpr uint8_t fifoSize = 16;
+    };
+    struct CrsfCallbackConfig;
+    using crsf_cb = CrsfCallback<CrsfCallbackConfig, debug>;
+    struct CrsfConfig {
+        using rxpin = inputrx;
+        using txpin = inputtx;
+        using systemTimer = Devices::systemTimer;
+        using clock = Devices::clock;
+        using dmaChRead  = crsfDmaChannel1;
+        using dmaChWrite = crsfDmaChannel2;
+        using debug = Devices::debug;
+        using tp = void;
+        using callback = crsf_cb;
+        static inline constexpr uint8_t fifoSize = 16;
+    };
+    struct CrsfCallbackConfig {
+        using src = Devices::crsf;
+        using storage = Config::storage;
+        using timer = systemTimer;
+        using relay = Devices::relay;
+        using tp = void;
+        using debug = Devices::debug;
+    };
+    struct AdcConfig {
+        using debug = void;
+        using channels = std::integer_sequence<uint8_t, 5>;
+        using dmaChannel = adcDmaChannel;
+        using trigger = Mcu::Stm::ContinousSampling<2>;
+        using isrConfig = Meta::List<>;
+    };
+
+    using periodics = StandardComponents<debug, crsf, relay, ledBlinker, btn>;
+
+    static inline void periodic() {
+        periodics::periodic();
+    }
+    static inline void ratePeriodic() {
+        periodics::ratePeriodic();
+    }
+    static inline void init() {
+        clock::init();
         systemTimer::init();
 
         gpioa::init();

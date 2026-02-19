@@ -37,9 +37,17 @@
 
 2. **Flash to STM32:**
    - Put STM32G431 into DFU mode (BOOT0 high during reset)
-   - Use STM32CubeProgrammer or dfu-util
    - Flash address: `0x08000000`
-   - File: `relay_01.bin`
+   
+   **Using dfu-util:**
+   ```bash
+   dfu-util -a 0 -s 0x08000000:leave -D relay_01.bin
+   ```
+   
+   **Using STM32CubeProgrammer CLI:**
+   ```bash
+   STM32_Programmer_CLI -c port=usb1 -w relay_01.bin 0x08000000 -v -s
+   ```
 
 ### Build Commands
 

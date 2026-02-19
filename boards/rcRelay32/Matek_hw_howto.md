@@ -11,7 +11,7 @@
 ### UART1 - Relay/Passthrough Output
 - **TX:** PA9
 - **RX:** PA10
-- **Baudrate:** 400,000 baud (8N1)
+- **Baudrate:** 921,000 baud (8N1)
 - **Function:** Relays/rewrites CRSF packets to flight controller or downstream device
 
 ### UART2 - CRSF Input
@@ -46,7 +46,7 @@
 ```bash
 cd /workspaces/wmucpp/boards/rcRelay32
 make -f Makefile.Matek clean
-make -f Makefile.Matek
+make -f Makefile.Matek matek
 ```
 
 Binary output: `relay_01.bin` (~17KB)
@@ -80,7 +80,7 @@ Both UARTs are occupied by the CRSF application, so debug output is not availabl
 
 ```
 Radio Receiver (CRSF) ──→ UART2 (PB3/PB4) ──→ [STM32G431] ──→ UART1 (PA9/PA10) ──→ Flight Controller
-                        420k baud                                400k baud
+                        420k baud                                921k baud
 ```
 
 ## Notes

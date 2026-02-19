@@ -329,7 +329,7 @@ struct Devices<Matek, Config, MCU> {
         crsf::init();
         crsf::baud(RC::Protokoll::Crsf::V4::baudrate);
         relay::init();
-        relay::baud(RC::Protokoll::Crsf::V4::baudrateHandset);
+        relay::baud(921'000);
         relay::activateSource(true);
         relay::activateLinkStats(false);
         relay::activateChannels(false);

@@ -43,6 +43,8 @@
 
 // #define ATTINY_10MHz // useful for 3.3V (only baudrates < 100k)
 
+// #define ALT_PINOUT // pinout as in board.h (serial input via PA2)
+
 #if !defined(F_CPU) || ((F_CPU + 1) == 1)
 # if defined(__AVR_ATtiny1614__)
 #  ifdef ATTINY_10MHz
@@ -125,7 +127,11 @@ using usart0Position = Portmux::Position<Component::Usart<0>, Portmux::Default>;
 using usart1Position = Portmux::Position<Component::Usart<1>, Portmux::Default>;
 using portmux = Portmux::StaticMapper<Meta::List<usart0Position, usart1Position>>;
 #else
+# ifdef ALT_PINOUT
+using portmux = Portmux::StaticMapper<Meta::List<usart0Position, Portmux::Alt1>>;
+# else
 using portmux = Portmux::StaticMapper<Meta::List<usart0Position>>;
+# endif
 #endif
 
 #if defined(__AVR_AVR128DA32__) or defined(__AVR_AVR128DA28__)
@@ -143,6 +149,16 @@ using led0 = Pin<Port<D>, 0>;
 using tp   = Pin<Port<A>, 7>; // enables toggling this pin on every loop run
 
 #elif defined(__AVR_ATtiny1614__)
+# ifdef ALT_PINOUT
+using led7 = Pin<Port<B>, 3>; 
+using led6 = Pin<Port<A>, 7>; 
+using led5 = Pin<Port<A>, 5>; 
+using led4 = Pin<Port<A>, 4>; 
+using led3 = Pin<Port<A>, 3>; 
+using led2 = Pin<Port<B>, 2>; 
+using led1 = Pin<Port<B>, 1>; 
+using led0 = Pin<Port<B>, 0>; 
+# else
 // output-to-pin
 using led7 = Pin<Port<A>, 4>;
 using led6 = Pin<Port<A>, 5>;
@@ -152,9 +168,13 @@ using led3 = Pin<Port<A>, 1>;
 using led2 = Pin<Port<A>, 2>;
 using led1 = Pin<Port<B>, 1>;
 using led0 = Pin<Port<B>, 0>;
+# endif
 
-// using tp = NoPin;
+#ifdef ALT_PINOUT
+using tp = NoPin;
+#else
 using tp   = Pin<Port<A>, 3>; // enables toggling this pin on every loop run
+#endif
 #endif
 
 using ledList = Meta::List<led0, led1, led2, led3, led4, led5, led6, led7>;

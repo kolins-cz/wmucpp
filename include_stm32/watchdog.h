@@ -42,8 +42,8 @@ struct WatchDog {
         // Handle different reset flag names between STM32G0 and STM32G4
         #if defined(RCC_CSR_PWRRSTF)
             constexpr uint32_t PWR_RESET_FLAG = RCC_CSR_PWRRSTF;
-        #elif defined(RCC_CSR_LPWRRSTF)
-            constexpr uint32_t PWR_RESET_FLAG = RCC_CSR_LPWRRSTF;
+        #elif defined(RCC_CSR_BORRSTF)
+            constexpr uint32_t PWR_RESET_FLAG = RCC_CSR_BORRSTF;
         #else
             #error "Unknown power reset flag for this MCU"
         #endif

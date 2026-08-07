@@ -16,13 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Board selection - can be overridden via compiler flags
+#if !defined(USE_WEACT) && !defined(USE_WMG0B1) && !defined(USE_NUCLEO_431)
 // #define USE_WEACT // STM32G031
-#define USE_WMG0B1 // STM32G0B1
+#define USE_WMG0B1 // STM32G0B1 (default)
 // #define USE_NUCLEO_431 // STM32G431 (dev board)
+#endif
 
+#ifndef SERIAL_DEBUG
 #define SERIAL_DEBUG // only for WMG0B1
+#endif
 
+#ifndef ALTERNATE_PINS
 #define ALTERNATE_PINS // WmG0B1 only
+#endif
 // #define USE_IRDA
 
 // #define USE_IRDA_TX_INVERT // for testing only (or direct connection)

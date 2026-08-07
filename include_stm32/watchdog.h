@@ -39,7 +39,16 @@ template<typename Config>
 struct WatchDog {
     static inline constexpr uint32_t reload = Config::reload;
     static inline void init() {
-        if (RCC->CSR & RCC_CSR_PWRRSTF) {
+        // Handle different reset flag names between STM32G0 and STM32G4
+        #if defined(RCC_CSR_PWRRSTF)
+            constexpr uint32_t PWR_RESET_FLAG = RCC_CSR_PWRRSTF;
+        #elif defined(RCC_CSR_LPWRRSTF)
+            constexpr uint32_t PWR_RESET_FLAG = RCC_CSR_LPWRRSTF;
+        #else
+            #error "Unknown power reset flag for this MCU"
+        #endif
+        
+        if (RCC->CSR & PWR_RESET_FLAG) {
             pin_count = 0;
             wdg_count = 0;
             test_count = 0;
